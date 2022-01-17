@@ -1,53 +1,36 @@
-import pygame as pg
-
+from SimpleRenderer import SimpleRenderer
+import random
+from math import *
 class FlyingBallGame():
-    def __init__(self, width, height, gravity=0, playerRadius = 5, playerMovementSpeed = 5, enemyMovementSpeed = 4):
-        pg.init()
-        self.lastTime = pg.time.get_ticks()
+    def __init__(self, width, height, gravity=0, playerRadius = 5, playerMovementSpeed = 7, enemyMovementSpeed = 0.2, maxEnemies= 10, enemyProb = 0.005):
+        self.r = SimpleRenderer(width, height)
+        self.r.init()
+
+        self.lastTime = self.r.time()
         self.width, self.height = width, height
         self.playerMovementSpeed = playerMovementSpeed
         self.enemyMovementSpeed = enemyMovementSpeed
         self.playerRadius = playerRadius
-        self.screen = pg.display.set_mode([width, height])
-        self.surface = pg.Surface(self.screen.get_size(), pg.SRCALPHA, 32)
-
         self.enemies = []
+        self.enemyRadius = 5
+        self.maxEnemies = maxEnemies
+        self.enemyProb = enemyProb
         self.reset()
         self.gameShouldQuit = False
 
     def reset(self):
-        self.screen.fill((50, 50, 50))
         self.playerPosition = [self.width/2, self.height/2]
         self.enemies = []
 
-    #step(deltaTime = 1./60.):
-
     def movePlayerUp(self):
-        self.playerPosition[1] += self.playerMovementSpeed*self.updateFreq
-        if self.playerPosition[1]>self.height:
-            self.playerPosition[1] = self.height
+        self.playerPosition[1] += self.playerMovementSpeed*self.deltaTime
+        if self.playerPosition[1]>self.height-self.playerRadius:
+            self.playerPosition[1] = self.height - self.playerRadius
 
     def movePlayerDown(self):
-        self.playerPosition[0] += self.playerMovementSpeed*self.updateFreq
-        if self.playerPosition[0]>self.width:
-            self.playerPosition[0] = self.width
-
-    def captureInput(self):
-
-        events = pg.event.get()
-        ## Quit, UP, DOWN
-        input = [False, False, False]
-        for event in events:
-            if event.type == pg.QUIT:
-                input[0] = True
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE or event.unicode == "q":
-                    input[0] = True
-                if event.key == pg.K_UP:
-                    input[1] = True
-                if event.key == pg.K_DOWN:
-                    input[2] = True
-        return input
+        self.playerPosition[1] -= self.playerMovementSpeed*self.deltaTime
+        if self.playerPosition[1] < self.playerRadius:
+            self.playerPosition[1] = self.playerRadius
 
     def processInput(self, input):
         if input[0]:
@@ -57,29 +40,60 @@ class FlyingBallGame():
         if input[2]:
             self.movePlayerDown()
 
-    def render(self):
-        pg.draw.circle(self.surface, (255, 0, 0), self.playerPosition, self.playerRadius)
-        
+    def drawScene(self):
+        self.r.drawCircle(self.playerPosition[0], self.playerPosition[1], self.playerRadius, [255, 0, 0])
+        for enemy in self.enemies:
+            self.r.drawCircle(enemy[0], enemy[1], enemy[2], [0,255,0])
+
+
+    def shouldSpawn(self):
+        return len(self.enemies) < self.maxEnemies and random.random()<self.enemyProb
+
+    def spawnEnemy(self):
+        if self.shouldSpawn():
+            y = random.randint(self.enemyRadius, self.height-self.enemyRadius)
+            self.enemies.append( [self.width, y, self.enemyRadius] )
+
+    def step(self):
+        i = 0
+        while i < len(self.enemies):
+            self.enemies[i][0] -= self.enemyMovementSpeed*self.deltaTime
+            if self.enemies[i][0] < 0:
+                self.enemies.remove(self.enemies[i])
+            else:
+                i+=1
+
+    def distance(self, x1, y1, x2, y2):
+        return sqrt(abs(x1-x2)**2 + abs(y1-y2)**2)
+
+    def checkCollision(self):
+        for enemy in self.enemies:
+            if (self.distance(self.playerPosition[0], self.playerPosition[1], enemy[0], enemy[1]) <= max(self.playerRadius, enemy[2])):
+                self.gameShouldQuit = True
+
+
     def mainLoop(self, updateFreq=1./60.):
         self.updateFreq = updateFreq
         while not self.gameShouldQuit:
-            deltaTime = pg.time.get_ticks() - self.lastTime
-            if deltaTime < self.updateFreq:
-                pg.time.wait(self.updateFreq-deltaTime)
-            self.lastTime = pg.time.get_ticks()
-            input = self.captureInput()
+            now = self.r.time()
+            self.deltaTime = now - self.lastTime
+            if (self.deltaTime < updateFreq):
+                continue
+            self.lastTime = now
+            self.r.clear()
+            input = self.r.captureInput()
             self.processInput(input)
-            self.screen.fill((50, 50, 50))
-            self.render()
-            pg.display.flip()
+            self.drawScene()
+            self.spawnEnemy()
+            self.step()
+            self.checkCollision()
+            self.r.flipBuffer()
 
-            
         #render
         #capture input
-        #pg.display.flip()
 
 
 
 
-game = FlyingBallGame(800,600, playerRadius = 100)
+game = FlyingBallGame(800,600, playerRadius = 25)
 game.mainLoop()

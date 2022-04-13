@@ -8,13 +8,13 @@ from OpenGL.GLU import *
 class SimpleRenderer():
     def __init__(self, width, height):
         self.circleSides = 32
-        self.width, self.height = 800, 600
+        self.width, self.height = width, height
 
     def init(self):
         pygame.init()
-        pygame.display.set_mode( [self.width, self.height], DOUBLEBUF|OPENGL)
+        self.screen = pygame.display.set_mode( [self.width, self.height], DOUBLEBUF|OPENGL)
         glMatrixMode(GL_PROJECTION)
-        glOrtho(0, 800, 0, 600, 0.0, -999.0);
+        glOrtho(0, self.width, 0, self.height, 0.0, -999.0);
 
 
     def clear(self):
@@ -53,6 +53,12 @@ class SimpleRenderer():
             if pressed[pygame.K_RIGHT]:
                 input[4] = True
         return input
+
+    def exportFrameAs3DArray(self):
+        size = self.screen.get_size()   
+        buffer = glReadPixels(0, 0, *size, GL_RGBA, GL_UNSIGNED_BYTE)
+        screen_surf = pygame.image.fromstring(buffer, size, "RGBA")
+        return pygame.surfarray.array3d(screen_surf)
 
     def time(self):
         return pygame.time.get_ticks()

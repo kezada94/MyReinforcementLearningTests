@@ -6,27 +6,24 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 class SimpleRenderer():
-    def __init__(self, width, height):
-        self.circleSides = 32
-        self.width, self.height = width, height
+    def __init__(self, viewportWidth, viewportHeight):
+        self.viewportWidth, self.viewportHeight = viewportWidth, viewportHeight
 
     def init(self):
         pygame.init()
-        self.screen = pygame.display.set_mode( [self.width, self.height], DOUBLEBUF|OPENGL)
+        self.screen = pygame.display.set_mode( [self.viewportWidth, self.viewportHeight], DOUBLEBUF|OPENGL)
         glMatrixMode(GL_PROJECTION)
-        glOrtho(0, self.width, 0, self.height, 0.0, -999.0);
+        glOrtho(-1, 1, -1, 1, 0.0, -999.0);
 
 
     def clear(self):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-    def drawCircle(self, cx, cy, r, color):
+    def drawShape(self, vertices, color):
         glColor3f(color[0], color[1], color[2]);
         glBegin(GL_POLYGON)
-        for i in range(self.circleSides):
-            cosine= r * cos(i*2*pi/self.circleSides) + cx
-            sine  = r * sin(i*2*pi/self.circleSides) + cy
-            glVertex2f(cosine, sine)
+        for vertex in vertices:
+            glVertex2f(vertex[0], vertex[1])
         glEnd();
 
     def flipBuffer(self):

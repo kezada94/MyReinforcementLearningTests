@@ -44,7 +44,7 @@ class Camera():
         self.height = height
 
     def toViewSpace(self, vertices):
-        transformer = np.array([1/self.height*self.aspectRatio, 1/self.height])
+        transformer = np.array([1/self.height*2*self.aspectRatio, 1/self.height*2])
         newVertices = vertices*transformer
         #this can be done much faster with vectorization in numpy 
         #for i, vertex in enumerate(vertices):
@@ -150,7 +150,7 @@ class FlyingBallGame():
         for d in delete[::-1]:
             self.enemies.remove(d)
 
-    def mainLoop(self, updateFreq=16.66):
+    def mainLoop(self, updateFreq=16.00):
         self.updateFreq = updateFreq
         self.lastTime = self.r.time()
         while not self.gameShouldQuit:
@@ -173,7 +173,7 @@ class FlyingBallGame():
         # capture input
 
 
-game = FlyingBallGame(800, 800, 100, playerRadius=5,
+game = FlyingBallGame(800, 800, 200, playerRadius=5,
                     enemyRadius=5, enemyProb=0.004, gameSpeed=1)
 game.mainLoop()
 frame = game.r.exportFrameAs3DArray()

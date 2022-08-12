@@ -33,7 +33,7 @@ diagnostics = {'rewards': [0], 'loss': [0],
 max_reward = 0
 episode = 1
 end = False
-stacked_states = env.reset()
+stacked_states = ## RETURN INITAL STATE env.reset()
 for step in tqdm(range(MAX_EPISODES)):
     # Escoger acción
     state = stacked_states
@@ -44,7 +44,7 @@ for step in tqdm(range(MAX_EPISODES)):
         diagnostics['q_N'][-1] += 1
 
     # Aplicar la acción
-    stacked_states_next, r, end, info = env.step(a)
+    stacked_states_next, r, end, info = env.step(a) #GET NECT
     
     diagnostics['rewards'][-1] += r
     if end:

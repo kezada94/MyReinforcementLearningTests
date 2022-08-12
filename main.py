@@ -3,9 +3,15 @@ import gym
 from tqdm import tqdm
 import pickle
 from time import sleep
-from RLAgent import DeepQNetwork, ConvolutionalNeuralNetwork, ReplayMemory
+from rl_agent import DeepQNetwork, ConvolutionalNeuralNetwork, ReplayMemory
+from fb_gym_wrap import FlyingBallGym
+import env_transformations as t
 
-MAX_EPISODES = 10000000
+def transformBurrito(env : gym.Env):
+    env = t.FrameSkipWrap(env, framesToSkip=4)
+    return env
+
+MAX_EPISODES = 10
 BATCH_SIZE = 32
 MEMORY_SIZE = 100000
 MINIMUM = 32
@@ -22,6 +28,7 @@ dqn_model = DeepQNetwork(q_model=ConvolutionalNeuralNetwork(n_state[0], n_action
                         target_update_freq=100,
                         learning_rate=2e-5, huber=True,
                         clip_error=True)
+env = FlyingBallGym()
 memory = []
 if (memory is not None):
     del memory
@@ -30,7 +37,7 @@ memory = ReplayMemory(n_state, memory_length=MEMORY_SIZE)
 
 diagnostics = {'rewards': [0], 'loss': [0],
                 'q_sum': [0], 'q_N': [0]}
-max_reward = 0
+max_reward = 1
 episode = 1
 end = False
 stacked_states = ## RETURN INITAL STATE env.reset()

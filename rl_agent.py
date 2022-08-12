@@ -7,8 +7,6 @@ import pickle
 from time import sleep
 import copy
 
-
-
 class ReplayMemory:
     def __init__(self, state_dim, memory_length=1000):
         self.length = memory_length
@@ -49,7 +47,6 @@ class ConvolutionalNeuralNetwork(torch.nn.Module):
         self.conv1 = torch.nn.Conv2d(n_input, n_filters, kernel_size=8, stride=4, bias=True)
         self.conv2 = torch.nn.Conv2d(n_filters, n_filters, kernel_size=4, stride=2, bias=True)
         self.conv3 = torch.nn.Conv2d(n_filters, n_filters, kernel_size=3, stride=1, bias=True)
-        
         
         #self.conv4 = torch.nn.Conv2d(n_filters, n_filters, kernel_size=2, stride=1)
         #self.conv3.weight.register_hook(lambda grad: grad * 1./np.sqrt(2))

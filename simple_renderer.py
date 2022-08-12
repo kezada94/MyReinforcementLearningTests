@@ -34,7 +34,7 @@ class SimpleRenderer():
 
         events = pygame.event.get()
         ## Quit, UP, DOWN
-        input = [False]*5
+        input = [False]*6
         for event in events:
             if event.type == pygame.QUIT:
                 input[0] = True
@@ -49,6 +49,8 @@ class SimpleRenderer():
                 input[3] = True
             if pressed[pygame.K_RIGHT]:
                 input[4] = True
+            if pressed[pygame.K_r]:
+                input[5] = True
         return input
 
     def exportFrameAs3DArray(self):
@@ -62,4 +64,7 @@ class SimpleRenderer():
 
     def wait(self, time):
         pygame.time.wait(time)
+    def close(self):
+        pygame.display.quit()
+        pygame.quit()
 

@@ -211,6 +211,7 @@ class FlyingBallGame():
             input = self.r.captureInput()
             actions = self.processInput(input)
             self.step(actions)
+            self.render()
             if self.gameShouldReset:
                 self.reset()
 
@@ -237,21 +238,18 @@ class FlyingBallGame():
     def step(self, actionsVector):
         if not self.player.isAlive:
             return
-        self.r.clear()
         self.spawnEnemy()
         self.performActions(actionsVector)
         self.updatePhysics()
         self.checkCollision()
         #self.impartLogic()
         self.updateScore()
+        
+    def render(self):
+        self.r.clear()
         self.drawScene()
         self.r.flipBuffer()
-        
-        #else:
-        #    self.reset()
-        #    self.gameShouldReset = False
-    
-        # capture input
+
 
 
 # game = FlyingBallGame(800, 600, 200, playerRadius=5,

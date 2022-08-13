@@ -52,6 +52,8 @@ class FlyingBallGym(gym.Env):
         info = self._getInfo()
         return state, info
 
+    def render(self):
+        self.game.render()
     def close(self):
         self.game.close()
         return
@@ -60,13 +62,14 @@ class FlyingBallGym(gym.Env):
 game = FlyingBallGym()
 import env_transformations as t
 
-game = t.FrameSkipWrap(game, framesToSkip=8)
+game = t.FrameSkipWrap(game, framesToSkip=0)
 
 
 _,_,_,info = game.step(1)
 
 for i in range(1888):
-    _,_,_,info = game.step(0)
-    if i==300:
+    _,_,end,info = game.step(0)    
+    if end:
         game.reset()
+    game.render()
     print(info)

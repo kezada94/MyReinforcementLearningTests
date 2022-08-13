@@ -4,7 +4,7 @@ from tqdm import tqdm
 import pickle
 from time import sleep
 from rl_agent import DeepQNetwork, ConvolutionalNeuralNetwork, ReplayMemory
-from fb_gym_wrap import FlyingBallGym
+from flying_ball_env import FlyingBallGym
 import env_transformations as t
 
 def transformBurrito(env : gym.Env):

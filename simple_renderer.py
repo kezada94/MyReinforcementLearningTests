@@ -64,6 +64,7 @@ class SimpleRenderer():
 
     def wait(self, time):
         pygame.time.wait(time)
+        
     def close(self):
         pygame.display.quit()
         pygame.quit()

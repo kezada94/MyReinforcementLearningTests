@@ -19,7 +19,8 @@ class FlyingBallGym(gym.Env):
             return fb.Actions.Jump
 
     def step(self, action: int):
-        end = False
+        terminated = False
+        truncated = False
         ## Step the simulation
         a = self._actionSpaceToAction(action)
         self.game.step([a])
@@ -29,14 +30,14 @@ class FlyingBallGym(gym.Env):
         reward=0
         if not self.game.player.isAlive:
             reward = -1
-            end = True
+            terminated = True
             self.lastScore=0
         else:
             if self.game.score != self.lastScore:
                 self.lastScore = self.game.score
                 reward = 1
         info = self._getInfo()
-        return state, reward, end, info
+        return state, reward, terminated, truncated, info
 
     def _getInfo(self):
         info = {"playerPosition":self.game.player.position, "totalScore":self.game.score, "nEnemiesAlive" : self.game.enemiesAlive}
@@ -54,6 +55,7 @@ class FlyingBallGym(gym.Env):
 
     def render(self):
         self.game.render()
+
     def close(self):
         self.game.close()
         return
@@ -65,11 +67,11 @@ import env_transformations as t
 game = t.FrameSkipWrap(game, framesToSkip=0)
 
 
-_,_,_,info = game.step(1)
+_,_,_,_,info = game.step(1)
 
 for i in range(1888):
-    _,_,end,info = game.step(0)    
+    _, _, end,_, info = game.step(0)    
     if end:
         game.reset()
     game.render()
-    print(info)
+    #print(info)

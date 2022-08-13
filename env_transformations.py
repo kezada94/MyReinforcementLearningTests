@@ -4,25 +4,26 @@ import gym
 ## whatever they miss its not maxed or averaged
 class FrameSkipWrap(gym.Wrapper):
     def __init__(self, env, framesToSkip = 4):
-        super().__init__(env)
+        super().__init__(env, new_step_api=True)
         self.env = env
         self.framesToSkip = framesToSkip    
+
     def step(self, action):
-        istate, ir, idone, iinfo = self.env.step(action)
+        istate, ir, iterminated, truncated, iinfo = self.env.step(action)
         for i in range(self.framesToSkip-1):
-            if idone:
+            if iterminated:
                 break
 
-            _, rr, idone, _ = self.env.step(action) ## Note that the action is repeated, is this desirable?
+            _, rr, iterminated, _, _ = self.env.step(action) ## Note that the action is repeated, is this desirable?
             r += rr
 
-        if idone:
+        if iterminated:
             ir=-1
-        return (istate, ir, idone, iinfo)
+        return (istate, ir, iterminated, truncated, iinfo)
 
 class StackFramesWrap(gym.Wrapper):
     def __init__(self, env, framesToStack = 4):
-        super().__init__(env)
+        super().__init__(env, new_step_api=True)
         self.env = env
         self.framesToStack = framesToStack    
 

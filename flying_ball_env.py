@@ -5,8 +5,11 @@ from gym import spaces
 
 class FlyingBallGym(gym.Env):
     def __init__(self, maxEnemies: int = 5, headless: bool=False, target_fps: int = 60):
+        width = 800
+        height = 600
         self.action_space = spaces.Discrete(2);
-        self.game = fb.FlyingBallGame(800, 800, 200, playerRadius=5,
+        self.observation_space = (width, height, 3)
+        self.game = fb.FlyingBallGame(width, height, 200, playerRadius=50,
                     enemyRadius=5, enemyProb=0.004, gameSpeed=1,
                     enemyVelocity=np.array([-1, 0.0]))
         self.lastScore=0
@@ -64,14 +67,24 @@ class FlyingBallGym(gym.Env):
 game = FlyingBallGym()
 import env_transformations as t
 
-game = t.FrameSkipWrap(game, framesToSkip=0)
+game = t.TransformStateWrap(game, downsampleMultier=2)
+#game = t.FrameSkipWrap(game, framesToSkip=0)
+#game = t.StackFramesWrap(game, framesToStack=4)
 
+import cv2
+g, info =game.reset()
+print(info)
+#g = game._getObs()
+cv2.imwrite("lastFrame.jpg", g)
+exit()
+g,_,_,_,info = game.step(1)
 
-_,_,_,_,info = game.step(1)
-
+g = game._getObs()
+cv2.imwrite("lastFrame.jpg", g)
 for i in range(1888):
-    _, _, end,_, info = game.step(0)    
+    g, _, end,_, info = game.step(0)    
     if end:
         game.reset()
+    
     game.render()
     #print(info)

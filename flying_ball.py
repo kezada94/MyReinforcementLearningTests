@@ -1,7 +1,6 @@
 from simple_renderer import SimpleRenderer
 import random
 from math import *
-from PIL import Image
 import numpy as np
 import enum
 CIRCLE_VERTICES = 6
@@ -57,8 +56,8 @@ class Camera():
         return newVertices
 
 class FlyingBallGame():
-    def __init__(self, viewportWidth, viewportHeight, cameraHeight, gravity=np.array([0, -0.1]), playerRadius=5, playerJumpVelocity=np.array([0.0, 3]), enemyRadius=10, enemyVelocity=np.array([-1, 0.0]), maxEnemies=10, enemyProb=0.0005, gameSpeed=1, seed=0):
-        self.r = SimpleRenderer(viewportWidth, viewportHeight)
+    def __init__(self, viewportWidth, viewportHeight, cameraHeight, headlessMode = False, gravity=np.array([0, -0.1]), playerRadius=5, playerJumpVelocity=np.array([0.0, 3]), enemyRadius=10, enemyVelocity=np.array([-1, 0.0]), maxEnemies=10, enemyProb=0.0005, gameSpeed=1, seed=0):
+        self.r = SimpleRenderer(viewportWidth, viewportHeight, headlessMode=headlessMode)
         self.r.init()
         random.seed(seed)
     
@@ -153,7 +152,7 @@ class FlyingBallGame():
         if self.enemiesAlive < self.maxEnemies and random.random() < self.enemyProb:
             #print("1", [e.isAlive for e in self.enemies])
 
-            print("Spawning enemy.")
+            #print("Spawning enemy.")
             enemy = None
             for e in self.enemies:
                 if not e.isAlive:
@@ -206,10 +205,10 @@ class FlyingBallGame():
             self.deltaTime = now - self.lastTime
             if (self.deltaTime < updateFreq):
                 continue
-            #print(1/self.deltaTime*1000)
+            print(1/self.deltaTime*1000)
             self.lastTime = now
-            input = self.r.captureInput()
-            actions = self.processInput(input)
+            keysPressed = self.r.captureInput()
+            actions = self.processInput(keysPressed)
             self.step(actions)
             self.render()
             if self.gameShouldReset:
@@ -251,12 +250,12 @@ class FlyingBallGame():
         self.r.flipBuffer()
 
 
-
-# game = FlyingBallGame(800, 600, 200, playerRadius=5,
+#from PIL import Image
+#game = FlyingBallGame(800, 600, 200, headlessMode=True, playerRadius=5,
 #                    enemyRadius=5, enemyProb=0.4, gameSpeed=1,
 #                    enemyVelocity=np.array([-1, 0.0]), seed=0)
-# game.mainLoop()
-# frame = game.r.exportFrameAs3DArray()
-# game.close()
-# im = Image.fromarray(np.transpose(frame[::2, ::2], (1, 0, 2)), 'RGB')
-# im.save("lastFrame.png")
+#game.mainLoop()
+#frame = game.r.exportFrameAs3DArray()
+#game.close()
+#im = Image.fromarray(np.transpose(frame[::2, ::2], (1, 0, 2)), 'RGB')
+#im.save("lastFrame.png")

@@ -1,17 +1,24 @@
 import pygame
 from pygame.locals import *
 from math import *
+import os
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
 class SimpleRenderer():
-    def __init__(self, viewportWidth, viewportHeight):
+    def __init__(self, viewportWidth, viewportHeight, headlessMode = False):
         self.viewportWidth, self.viewportHeight = viewportWidth, viewportHeight
+        self.headlessMode = headlessMode
 
     def init(self):
         pygame.init()
-        self.screen = pygame.display.set_mode( [self.viewportWidth, self.viewportHeight], DOUBLEBUF|OPENGL)
+
+        flags = DOUBLEBUF|OPENGL
+        if self.headlessMode:
+            flags |= HIDDEN
+        
+        self.screen = pygame.display.set_mode( [self.viewportWidth, self.viewportHeight], flags)
         glMatrixMode(GL_PROJECTION)
         glOrtho(-1, 1, -1, 1, 0.0, -999.0);
 
@@ -55,8 +62,11 @@ class SimpleRenderer():
 
     def exportFrameAs3DArray(self):
         size = self.screen.get_size()   
-        buffer = glReadPixels(0, 0, *size, GL_RGBA, GL_UNSIGNED_BYTE)
-        screen_surf = pygame.image.fromstring(buffer, size, "RGBA")
+        buffer = glReadPixels(0, 0, *size, GL_RGB, GL_UNSIGNED_BYTE)
+        #print(type)
+        screen_surf = pygame.image.fromstring(buffer, size, "RGB")
+        #screen_surf = pygame.image.frombuffer(buffer, size, "RGB")
+        #screen_surf = pygame.transform.flip(screen_surf,flip_x=False, flip_y=True)
         return pygame.surfarray.array3d(screen_surf)
 
     def time(self):

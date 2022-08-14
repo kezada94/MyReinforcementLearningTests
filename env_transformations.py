@@ -69,10 +69,10 @@ class TransformStateWrap(gym.Wrapper):
         assert len(frame.shape) == 3, "Not working with an RGB image"
         cv2.imwrite("og.png", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         #cv2.imwrite("og.png", frame)
-        print("b4", frame.max())
+        #print("b4", frame.max())
         newFrame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        print("af", newFrame.max())
-
+        #print("af", newFrame.max())
+        newFrame = cv2.pyrDown(newFrame, dstsize=(newFrame.shape // 2, rows // 2))
         return newFrame
 
     def reset(self):

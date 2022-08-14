@@ -74,9 +74,6 @@ game = t.TransformStateWrap(game, downsampleMultier=2)
 import cv2
 g, info =game.reset()
 print(info)
-#g = game._getObs()
-cv2.imwrite("lastFrame.jpg", g)
-exit()
 g,_,_,_,info = game.step(1)
 
 g = game._getObs()

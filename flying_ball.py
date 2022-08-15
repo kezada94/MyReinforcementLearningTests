@@ -3,7 +3,7 @@ import random
 from math import *
 import numpy as np
 import enum
-CIRCLE_VERTICES = 6
+CIRCLE_VERTICES = 16
 
 class Actions(enum.Enum):
     Noot = 0
@@ -135,11 +135,11 @@ class FlyingBallGame():
         viewVertices = self.camera.toViewSpace(worldVertices)
         self.r.drawShape(viewVertices, self.player.color)
         
-        #b = Ball(5, np.array([0,0,255]))
-        #b.position = np.array([0,50])
-        #wb = b.toWorldSpace()
-        #vb = self.camera.toViewSpace(wb)
-        #self.r.drawShape(vb, b.color)
+        # b = Ball(5, np.array([0,0,255]))
+        # b.position = np.array([0,50])
+        # wb = b.toWorldSpace()
+        # vb = self.camera.toViewSpace(wb)
+        # self.r.drawShape(vb, b.color)
 
         for enemy in self.enemies:
             if enemy.isAlive:

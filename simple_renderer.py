@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import *
 from math import *
-import os
 
 from OpenGL.GL import *
 from OpenGL.GLU import *

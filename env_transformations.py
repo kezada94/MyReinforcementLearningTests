@@ -1,5 +1,7 @@
+from typing import Tuple
 import gym
 import numpy as np
+from scipy.fft import dst
 ## Only frameskip as humans also sample their world in a somewhat fixed interval
 ## whatever they miss its not maxed or averaged
 class FrameSkipWrap(gym.Wrapper):
@@ -58,12 +60,15 @@ import cv2
 ## Assumes the frame in a width x height x 'RGB'
 ## proceeds to downsample the frame and grayscale it
 class TransformStateWrap(gym.Wrapper):
-    def __init__(self, env, downsampleMultier : int = 2):
-        super().__init__(env,new_step_api=True)
+    def __init__(self, env, dstSize : Tuple):
+        super().__init__(env, new_step_api=True)
 
-        assert downsampleMultier>0, "Canot downsample to 0!"
+        assert len(dstSize)==2, "dstSize must be a tuple of (width, height)"
+        print(dstSize)
+        assert dstSize[0] > 0 and dstSize[1] > 0, f"Canot resize to {dstSize[0]}x{dstSize[1]}!"
         self.env = env
-        self.downsampleMultier = downsampleMultier    
+        ## Inverting dstSize as opencv defines images as (height, with, channels)in contrast to pygame's (width. height, channels)
+        self.dstSize = (dstSize[1], dstSize[0])    
 
     def transform(self, frame):
         assert len(frame.shape) == 3, "Not working with an RGB image"
@@ -72,7 +77,7 @@ class TransformStateWrap(gym.Wrapper):
         #print("b4", frame.max())
         newFrame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         #print("af", newFrame.max())
-        newFrame = cv2.pyrDown(newFrame, dstsize=(newFrame.shape // 2, rows // 2))
+        newFrame = cv2.resize(newFrame, dsize=self.dstSize)
         return newFrame
 
     def reset(self):

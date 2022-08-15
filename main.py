@@ -7,14 +7,19 @@ from rl_agent import DeepQNetwork, ConvolutionalNeuralNetwork, ReplayMemory
 from flying_ball_env import FlyingBallGym
 import env_transformations as t
 
-def transformBurrito(env : gym.Env):
-    env = t.FrameSkipWrap(env, framesToSkip=4)
-    return env
-
 MAX_EPISODES = 10
 BATCH_SIZE = 32
 MEMORY_SIZE = 100000
 MINIMUM = 32
+
+
+# transformBurrito
+env = FlyingBallGym()
+env = t.TransformStateWrap(env, dstSize=(84, 84))
+env = t.FrameSkipWrap(env, framesToSkip=4)
+env = t.StackFramesWrap(env, framesToStack=4)
+
+
 
 #torch.manual_seed(123)
 n_state = (4, 84, 84)
@@ -28,7 +33,6 @@ dqn_model = DeepQNetwork(q_model=ConvolutionalNeuralNetwork(n_state[0], n_action
                         target_update_freq=100,
                         learning_rate=2e-5, huber=True,
                         clip_error=True)
-env = FlyingBallGym()
 memory = []
 if (memory is not None):
     del memory

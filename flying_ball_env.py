@@ -1,3 +1,4 @@
+from cv2 import ROTATE_90_COUNTERCLOCKWISE
 import flying_ball as fb
 import numpy as np
 import gym
@@ -9,7 +10,7 @@ class FlyingBallGym(gym.Env):
         height = 600
         self.action_space = spaces.Discrete(2);
         self.observation_space = (width, height, 3)
-        self.game = fb.FlyingBallGame(width, height, 200, playerRadius=50,
+        self.game = fb.FlyingBallGame(width, height, 200, playerRadius=5,
                     enemyRadius=5, enemyProb=0.004, gameSpeed=1,
                     enemyVelocity=np.array([-1, 0.0]))
         self.lastScore=0
@@ -27,6 +28,8 @@ class FlyingBallGym(gym.Env):
         ## Step the simulation
         a = self._actionSpaceToAction(action)
         self.game.step([a])
+
+        self.game.render()
 
         ## get State
         state = self._getObs()
@@ -52,6 +55,7 @@ class FlyingBallGym(gym.Env):
     def reset(self):
         #super().reset()
         self.game.reset()
+        self.game.render()
         state = self._getObs()
         info = self._getInfo()
         return state, info
@@ -66,22 +70,33 @@ class FlyingBallGym(gym.Env):
 
 game = FlyingBallGym()
 import env_transformations as t
-
-game = t.TransformStateWrap(game, downsampleMultier=2)
-#game = t.FrameSkipWrap(game, framesToSkip=0)
-#game = t.StackFramesWrap(game, framesToStack=4)
+#                                         WIDTH HEIGHT
+game = t.TransformStateWrap(game, dstSize=(84, 84))
+game = t.FrameSkipWrap(game, framesToSkip=0)
+game = t.StackFramesWrap(game, framesToStack=4)
 
 import cv2
-g, info =game.reset()
+g, info = game.reset()
 print(info)
-g,_,_,_,info = game.step(1)
+g,_,_,_,info = game.step(0)
+print(info)
+g,_,_,_,info = game.step(0)
+print(info)
+g,_,_,_,info = game.step(0)
+print(info)
 
-g = game._getObs()
-cv2.imwrite("lastFrame.jpg", g)
+g1=cv2.rotate(g[0], rotateCode=ROTATE_90_COUNTERCLOCKWISE)
+g2=cv2.rotate(g[1], rotateCode=ROTATE_90_COUNTERCLOCKWISE)
+g3=cv2.rotate(g[2], rotateCode=ROTATE_90_COUNTERCLOCKWISE)
+g4=cv2.rotate(g[3], rotateCode=ROTATE_90_COUNTERCLOCKWISE)
+
+cv2.imwrite("lastFrame1.jpg", g1)
+cv2.imwrite("lastFrame2.jpg", g2)
+cv2.imwrite("lastFrame3.jpg", g3)
+cv2.imwrite("lastFrame4.jpg", g4)
 for i in range(1888):
     g, _, end,_, info = game.step(0)    
     if end:
         game.reset()
     
-    game.render()
     #print(info)

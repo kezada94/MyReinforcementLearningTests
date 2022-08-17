@@ -64,7 +64,6 @@ class ConvolutionalNeuralNetwork(torch.nn.Module):
         self.activation = torch.nn.ReLU()
 
     def forward(self, x):
-        x=x.float()
         h = self.activation(self.conv1(x))
         h = self.activation(self.conv2(h))
         h = self.activation(self.conv3(h))
@@ -83,7 +82,7 @@ class ConvolutionalNeuralNetwork(torch.nn.Module):
 
 class DeepQNetwork:
     def __init__(self, q_model, gamma=0.999, double_dqn=False, learning_rate=1e-3,
-                 target_update_freq=500, clip_grads=True, clip_error=False, huber=False):
+                target_update_freq=500, clip_grads=True, clip_error=False, huber=False, device='cpu'):
         self.double_dqn = double_dqn
         self.gamma = gamma
         self.q_policy = q_model
@@ -92,6 +91,7 @@ class DeepQNetwork:
         self.clip_grads = clip_grads
         self.update_counter = 0
         self.target_update_freq = target_update_freq
+        self.device = device
         if not huber:
             self.criterion = torch.nn.MSELoss()
         else:
@@ -121,20 +121,20 @@ class DeepQNetwork:
         self.update_counter += 1
         state, state_next, action, reward, end = mini_batch
         # Calcular Q
-        q_current = self.q_policy(state).gather(1, action)
+        q_current = self.q_policy(state.to(self.device)).gather(1, action.to(self.device))
         with torch.no_grad():
             if not self.double_dqn:
-                q_next_best = self.q_policy(state_next).max(1, keepdim=True)[0]
+                q_next_best = self.q_policy(state_next.to(self.device)).max(1, keepdim=True)[0]
             else:
-                action_next = self.q_policy(state_next).argmax(dim=1, keepdim=True)
-                q_next_best = self.q_target(state_next).gather(1, action_next)
+                action_next = self.q_policy(state_next.to(self.device)).argmax(dim=1, keepdim=True)
+                q_next_best = self.q_target(state_next.to(self.device)).gather(1, action_next.to(self.device))
         # Construir el target: r + gamma*max Q(s', a')
         td_target = reward
-        td_target[~end] += self.gamma*q_next_best[~end]
+        td_target[~end] += self.gamma*q_next_best[~end].to('cpu')
         td_target[end] = -1.
         # Calcular pérdido y sus gradientes
         self.optimizer.zero_grad()
-        loss = self.criterion(q_current, td_target)
+        loss = self.criterion(q_current, td_target.to(self.device))
         if self.clip_error:
             loss.clamp_(-1., 1.)
         loss.backward()

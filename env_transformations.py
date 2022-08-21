@@ -12,7 +12,7 @@ class FrameSkipWrap(gym.Wrapper):
 
     def step(self, action):
         istate, ir, iterminated, truncated, iinfo = self.env.step(action)
-        for i in range(self.framesToSkip-1):
+        for _ in range(self.framesToSkip-1):
             if iterminated:
                 break
 

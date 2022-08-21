@@ -249,13 +249,14 @@ class FlyingBallGame():
         self.drawScene()
         self.r.flipBuffer()
 
+if __name__ == "__main__":
 
-#from PIL import Image
-#game = FlyingBallGame(800, 600, 200, headlessMode=True, playerRadius=5,
-#                    enemyRadius=5, enemyProb=0.4, gameSpeed=1,
-#                    enemyVelocity=np.array([-1, 0.0]), seed=0)
-#game.mainLoop()
-#frame = game.r.exportFrameAs3DArray()
-#game.close()
-#im = Image.fromarray(np.transpose(frame[::2, ::2], (1, 0, 2)), 'RGB')
-#im.save("lastFrame.png")
+    from PIL import Image
+    game = FlyingBallGame(800, 600, 200, headlessMode=True, playerRadius=5,
+                    enemyRadius=5, enemyProb=0.4, gameSpeed=1,
+                    enemyVelocity=np.array([-1, 0.0]), seed=0)
+    game.mainLoop()
+    frame = game.r.exportFrameAs3DArray()
+    game.close()
+    im = Image.fromarray(np.transpose(frame[::2, ::2], (1, 0, 2)), 'RGB')
+    im.save("lastFrame.png")

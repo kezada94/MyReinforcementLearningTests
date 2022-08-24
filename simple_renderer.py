@@ -11,10 +11,23 @@ class SimpleRenderer():
         self.viewportWidth, self.viewportHeight = viewportWidth, viewportHeight
         self.headlessMode = headlessMode
 
+    def _createFBO(self, w, h):
+        fbo = glGenFramebuffers (1)
+        glBindFramebuffer (GL_FRAMEBUFFER, fbo)
+        texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glBindTexture(GL_TEXTURE_2D, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0)
+        
+        return fbo
+
     def _createPBO(self, w, h):
         pbo = glGenBuffers (1)
         glBindBuffer (GL_PIXEL_PACK_BUFFER, pbo)
-        glBufferData(target = GL_PIXEL_PACK_BUFFER, size=w*h*4 + 144, data=None, usage=GL_STREAM_COPY);
+        glBufferData(target = GL_PIXEL_PACK_BUFFER, size=w*h*3, data=None, usage=GL_STREAM_COPY);
         glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
         return pbo
 
@@ -29,8 +42,8 @@ class SimpleRenderer():
         print(pygame.display.Info())
         glMatrixMode(GL_PROJECTION)
         glOrtho(-1, 1, -1, 1, 0.0, -999.0);
+        self.fbo = self._createFBO(self.viewportWidth, self.viewportHeight)
         self.pbo = self._createPBO(self.viewportWidth, self.viewportHeight)
-
 
     def clear(self):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
@@ -42,6 +55,16 @@ class SimpleRenderer():
         for vertex in vertices:
             glVertex2f(*vertex)
         glEnd();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
+        self.clear()
+        glColor3f(color[0], color[1], color[2]);
+        glBegin(GL_POLYGON)
+        for vertex in vertices:
+            glVertex2f(*vertex)
+        glEnd();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
         #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_WRITE)
         #glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
         #glUnmapBuffer(GL_PIXEL_PACK_BUFFER)
@@ -75,20 +98,23 @@ class SimpleRenderer():
 
     def exportFrameAs3DArray(self):
         
-        glReadBuffer(GL_FRONT);
         #glBufferData()
-        glBindBuffer (GL_PIXEL_PACK_BUFFER, self.pbo)
+        glBindFramebuffer (GL_FRAMEBUFFER, self.fbo)
+
+        #glBindBuffer (GL_PIXEL_PACK_BUFFER, self.pbo)
         #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
 
-        buffer = glReadPixels(0, 0, self.viewportWidth, self.viewportHeight, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE)
+        buffer = glReadPixels(0, 0, self.viewportWidth, self.viewportHeight, GL_RGB, GL_UNSIGNED_BYTE)
         
-        glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
+        #print(type(buffer))
+        #glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
+        glBindFramebuffer (GL_FRAMEBUFFER, 0)
+
         #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
         #print(self.pbo1)
         #print(buffer)
         #print(type)
         
-        glDrawBuffer(GL_BACK);
         #s = self.screen.copy()
         #s = pygame.PixelArray(s)
         #print(s)

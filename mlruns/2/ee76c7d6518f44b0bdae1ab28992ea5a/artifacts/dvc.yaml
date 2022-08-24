@@ -1,3 +1,0 @@
-stages:
-    train:
-        cmd: python main.py

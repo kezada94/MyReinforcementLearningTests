@@ -12,7 +12,7 @@ import mlflow
 from utils.mlflow_run_decorator import mlflow_run
 
 
-MAX_EPISODES = 30
+MAX_EPISODES = 10
 BATCH_SIZE = 32
 MEMORY_SIZE = 3200
 MINIMUM = 32

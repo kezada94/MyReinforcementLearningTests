@@ -20,12 +20,17 @@ class SimpleRenderer():
         self.screen = pygame.display.set_mode( [self.viewportWidth, self.viewportHeight], flags)
         glMatrixMode(GL_PROJECTION)
         glOrtho(-1, 1, -1, 1, 0.0, -999.0);
+        glEnableClientState (GL_VERTEX_ARRAY)
 
 
     def clear(self):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
     def drawShape(self, vertices, color):
+        vbo = glGenBuffers (1)
+        glBindBuffer (GL_ARRAY_BUFFER, vbo)
+        glBufferData (GL_ARRAY_BUFFER, len(vertices)*4, (4*len(vertices))(*vertices), GL_STATIC_DRAW)
+
         glColor3f(color[0], color[1], color[2]);
         glBegin(GL_POLYGON)
         for vertex in vertices:

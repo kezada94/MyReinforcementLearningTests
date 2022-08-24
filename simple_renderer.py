@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 from math import *
+import time as t
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -10,32 +11,40 @@ class SimpleRenderer():
         self.viewportWidth, self.viewportHeight = viewportWidth, viewportHeight
         self.headlessMode = headlessMode
 
+    def _createPBO(self, w, h):
+        pbo = glGenBuffers (1)
+        glBindBuffer (GL_PIXEL_PACK_BUFFER, pbo)
+        glBufferData(target = GL_PIXEL_PACK_BUFFER, size=w*h*4 + 144, data=None, usage=GL_STREAM_COPY);
+        glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
+        return pbo
+
     def init(self):
         pygame.init()
 
-        flags = DOUBLEBUF|OPENGL
+        flags = OPENGL | DOUBLEBUF
         if self.headlessMode:
             flags |= HIDDEN
         
         self.screen = pygame.display.set_mode( [self.viewportWidth, self.viewportHeight], flags)
+        print(pygame.display.Info())
         glMatrixMode(GL_PROJECTION)
         glOrtho(-1, 1, -1, 1, 0.0, -999.0);
-        glEnableClientState (GL_VERTEX_ARRAY)
+        self.pbo = self._createPBO(self.viewportWidth, self.viewportHeight)
 
 
     def clear(self):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
     def drawShape(self, vertices, color):
-        vbo = glGenBuffers (1)
-        glBindBuffer (GL_ARRAY_BUFFER, vbo)
-        glBufferData (GL_ARRAY_BUFFER, len(vertices)*4, (4*len(vertices))(*vertices), GL_STATIC_DRAW)
-
+        
         glColor3f(color[0], color[1], color[2]);
         glBegin(GL_POLYGON)
         for vertex in vertices:
-            glVertex2f(vertex[0], vertex[1])
+            glVertex2f(*vertex)
         glEnd();
+        #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_WRITE)
+        #glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
+        #glUnmapBuffer(GL_PIXEL_PACK_BUFFER)
 
     def flipBuffer(self):
         pygame.display.flip()
@@ -65,16 +74,33 @@ class SimpleRenderer():
         return input
 
     def exportFrameAs3DArray(self):
-        size = self.screen.get_size()   
-        buffer = glReadPixels(0, 0, *size, GL_RGB, GL_UNSIGNED_BYTE)
+        
+        glReadBuffer(GL_FRONT);
+        #glBufferData()
+        glBindBuffer (GL_PIXEL_PACK_BUFFER, self.pbo)
+        #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
+
+        buffer = glReadPixels(0, 0, self.viewportWidth, self.viewportHeight, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE)
+        
+        glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
+        #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
+        #print(self.pbo1)
+        #print(buffer)
         #print(type)
-        screen_surf = pygame.image.fromstring(buffer, size, "RGB")
+        
+        glDrawBuffer(GL_BACK);
+        #s = self.screen.copy()
+        #s = pygame.PixelArray(s)
+        #print(s)
+        #exit()
+        #screen_surf = pygame.image.fromstring(buffer, size, "RGB")
         #screen_surf = pygame.image.frombuffer(buffer, size, "RGB")
-        #screen_surf = pygame.transform.flip(screen_surf,flip_x=False, flip_y=True)
-        return pygame.surfarray.array3d(screen_surf)
+        #screen_surf = pygame.transform.flip(s,flip_x=False, flip_y=True)
+        #return pygame.surfarray.array3d(screen_surf)
+        return 2
 
     def time(self):
-        return pygame.time.get_ticks()
+        return t.perf_counter()
 
     def wait(self, time):
         pygame.time.wait(time)

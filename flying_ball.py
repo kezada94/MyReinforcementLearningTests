@@ -25,6 +25,7 @@ class Ball():
         X = R * np.cos(D)
         Y = R * np.sin(D)
         self.vertices = np.stack((X, Y), 1)
+        print(self.vertices.shape)
 
     def toWorldSpace(self):
         return self.vertices+self.position
@@ -196,16 +197,26 @@ class FlyingBallGame():
         self.enemiesAlive-=1
         assert self.enemiesAlive>-1
 
-    ## updateFreq is the minimum ms between frames
-    def mainLoop(self, updateFreq=16.00):
-        self.updateFreq = updateFreq
+    ## maxFPS is the minimum ms between frames
+    #def mainLoop(self, maxFPS=16.00):
+    def mainLoop(self, maxFPS=0):
+        self.maxFPS = maxFPS
         self.lastTime = self.r.time()
+        self.acctime = 0
         while not self.gameShouldQuit:
             now = self.r.time()
+            a=self.r.exportFrameAs3DArray()
+
             self.deltaTime = now - self.lastTime
-            if (self.deltaTime < updateFreq):
+            if (maxFPS != 0 and 1/self.deltaTime > maxFPS):
+                #print(1/self.deltaTime)
                 continue
-            print(1/self.deltaTime*1000)
+            self.acctime += self.deltaTime
+
+            if (self.acctime > 1 and self.deltaTime!=0):
+                #continue
+                print(1/self.deltaTime)
+                self.acctime = 0
             self.lastTime = now
             keysPressed = self.r.captureInput()
             actions = self.processInput(keysPressed)
@@ -227,7 +238,7 @@ class FlyingBallGame():
             if self.framesSinceReset == 60:
                 self.framesSinceReset = 0
                 self.score += 1
-                print(self.score)
+                #print(self.score)
 
     def performActions(self, actionsVector):
         for action in actionsVector:
@@ -252,9 +263,9 @@ class FlyingBallGame():
 if __name__ == "__main__":
 
     from PIL import Image
-    game = FlyingBallGame(800, 600, 200, headlessMode=True, playerRadius=5,
-                    enemyRadius=5, enemyProb=0.4, gameSpeed=1,
-                    enemyVelocity=np.array([-1, 0.0]), seed=0)
+    game = FlyingBallGame(800, 600, 200, headlessMode=False, playerRadius=5,
+                    enemyRadius=5, enemyProb=0.0, gameSpeed=1,
+                    enemyVelocity=np.array([-1, 0.0]), seed=0, gravity=[0,0])
     game.mainLoop()
     frame = game.r.exportFrameAs3DArray()
     game.close()

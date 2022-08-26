@@ -84,6 +84,7 @@ class FlyingBallGame():
         self.spawnRegion = Region(np.array([100,100]), np.array([100,-100]))
         self.despawnRegion = Region(np.array([-102,100]), np.array([-100,-100]))
         self.aliveRegion = Region(np.array([-100,100]), np.array([100,-100]))
+        self.outliers = 
         self.reset()
 
     def reset(self):
@@ -147,6 +148,8 @@ class FlyingBallGame():
                 worldVerticesE = enemy.toWorldSpace()
                 viewVerticesE = self.camera.toViewSpace(worldVerticesE)
                 self.r.drawShape(viewVerticesE, enemy.color)
+
+    def addOutlierBall(self, position, color, radius):
 
 
     def spawnEnemy(self):

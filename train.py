@@ -14,20 +14,40 @@ from utils.mlflow_run_decorator import mlflow_run
 
 MAX_EPISODES = 10
 BATCH_SIZE = 32
-MEMORY_SIZE = 3200
-MINIMUM = 32
+MEMORY_REPLAY_SIZE = 3200
+MINIMUM_FRAMES_TO_TRAIN = 32
 
 INPUT_WIDTH = 84
 INPUT_HEIGHT = 84
 FRAME_STACK_SIZE = 4
 SAMPLE_INTERVAL = 4
 
+GAMMA = 0.999
+LEARNING_RATE = 2e-5
+HUBER_LOSS = True
+DUAL_DQN = False
+TARGET_UPDATE_FREQ = 100
+CLIP_ERROR = True
+
+EPSILON = 0.0
+
 useGPU = True
+def log_hyperparams():
+    mlflow.log_param("MAX_EPISODES", MAX_EPISODES)
+    mlflow.log_param("BATCH_SIZE", BATCH_SIZE)
+    mlflow.log_param("MEMORY_REPLAY_SIZE", MEMORY_REPLAY_SIZE)
+    mlflow.log_param("MINIMUM_FRAMES_TO_TRAIN", MINIMUM_FRAMES_TO_TRAIN)
+    mlflow.log_param("INPUT_WIDTH", INPUT_WIDTH)
+    mlflow.log_param("INPUT_HEIGHT", INPUT_HEIGHT)
+    mlflow.log_param("FRAME_STACK_SIZE", FRAME_STACK_SIZE)
+    mlflow.log_param("SAMPLE_INTERVAL", SAMPLE_INTERVAL)
+    mlflow.log_param("EPSILON", EPSILON)
 
 
 @mlflow_run
 def train():
     # transformBurrito
+    log_hyperparams()  
     env = FlyingBallGym(headless=False)
     env = t.TransformStateWrap(env, dstSize=(INPUT_WIDTH, INPUT_HEIGHT))
     env = t.FrameSkipWrap(env, framesToSkip=SAMPLE_INTERVAL)
@@ -51,11 +71,12 @@ def train():
                             clip_error=True,
                             device=device)
 
-    memory = ReplayMemory(n_state, memory_length=MEMORY_SIZE)
+
+    memory = ReplayMemory(n_state, memory_length=MEMORY_REPLAY_SIZE)
 
     diagnostics = {'rewards': [0], 'loss': [0],
                     'q_sum': [0], 'q_N': [0]}
-    epsilon = 0.0
+    epsilon = EPSILON
     episode = 1
     terminated = False
     stacked_states, info = env.reset()
@@ -66,26 +87,19 @@ def train():
     pbar.update(1)
 
     while episode < MAX_EPISODES:
-    #for step in tqdm(range(MAX_EPISODES)):
-        #sleep(1)
-        # Escoger acción
+
         state = stacked_states
         action, q = dqn_model.select_action(torch.from_numpy(state).float().unsqueeze(0).to(device),
                                     epsilon=epsilon)
 
-
         if q is not None:
-            diagnostics['q_sum'][-1] += q
+            diagnostics['q_sum'][-1] += q.item()
             diagnostics['q_N'][-1] += 1
 
         # Aplicar la acción
         stacked_states_next, r, terminated, _, info = env.step(action) #GET NECT
         
         diagnostics['rewards'][-1] += r
-        #mlflow.log_metric("Step reward", r)
-
-        # Guardar en memoria
-        #env.rterminateder()
 
         memory.push(torch.from_numpy(state).float(),
                     torch.from_numpy(stacked_states_next).float(),
@@ -94,7 +108,7 @@ def train():
         stacked_states = stacked_states_next
 
         # Actualizar modelo
-        if memory.pointer > MINIMUM:
+        if memory.pointer > MINIMUM_FRAMES_TO_TRAIN:
             mini_batch = memory.sample(BATCH_SIZE)
             if not mini_batch is None:
                 diagnostics['loss'][-1] += dqn_model.update(mini_batch)
@@ -103,19 +117,7 @@ def train():
         if terminated:
             if diagnostics['rewards'][-1]>max_reward:
                 max_reward = diagnostics['rewards'][-1]
-            mlflow.log_metric("rewards", diagnostics['rewards'][-1], step=episode)
-            mlflow.log_metric("losses", diagnostics['loss'][-1], step=episode)
-            mlflow.log_metric("q_sums", diagnostics['q_sum'][-1].item(), step=episode)
-            mlflow.log_metric("q_Ns", diagnostics['q_N'][-1], step=episode)
 
-            # print(str(np.mean(diagnostics['rewards'][-100:])))
-            # if np.mean(diagnostics['rewards'][-100:])>max_reward:
-            #     max_reward = np.mean(diagnostics['rewards'][-100:])
-            #     print(str(max_reward) + ": modelo guardado!")
-                
-            #     save_model(dqn_model, max_reward)
-            # if episode % 10 == 0:
-            #     update_plot(step, episode)
             episode += 1
             terminated = False
             stacked_states, _ = env.reset()
@@ -124,8 +126,14 @@ def train():
             diagnostics['q_sum'].append(0)
             diagnostics['q_N'].append(0)
             pbar.update(1)
-            # 
-            # 
+
+
+    #for i in range(len(diagnostics['rewards'])):
+    stepVals = zip(*list(diagnostics.values()))
+    for i,stepVal in enumerate(stepVals):
+        d={key:val for key,val in zip(diagnostics.keys(), stepVal)}
+        print (d )
+        mlflow.log_metrics(d, i)
     mlflow.log_metric("max_reward", max_reward)
     # mlflow.log_metric("rewards", diagnostics['rewards'])
     # mlflow.log_metric("losses", diagnostics['loss'])

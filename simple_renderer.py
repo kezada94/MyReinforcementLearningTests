@@ -97,33 +97,15 @@ class SimpleRenderer():
         return input
 
     def exportFrameAs3DArray(self):
-        
-        #glBufferData()
         glBindFramebuffer (GL_FRAMEBUFFER, self.fbo)
 
-        #glBindBuffer (GL_PIXEL_PACK_BUFFER, self.pbo)
-        #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
-
         buffer = glReadPixels(0, 0, self.viewportWidth, self.viewportHeight, GL_RGB, GL_UNSIGNED_BYTE)
-        
-        #print(type(buffer))
-        #glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
         glBindFramebuffer (GL_FRAMEBUFFER, 0)
 
-        #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
-        #print(self.pbo1)
-        #print(buffer)
-        #print(type)
-        
-        #s = self.screen.copy()
-        #s = pygame.PixelArray(s)
-        #print(s)
-        #exit()
-        #screen_surf = pygame.image.fromstring(buffer, size, "RGB")
+        screen_surf = pygame.image.fromstring(buffer, (self.viewportWidth, self.viewportHeight), "RGB")
         #screen_surf = pygame.image.frombuffer(buffer, size, "RGB")
         #screen_surf = pygame.transform.flip(s,flip_x=False, flip_y=True)
-        #return pygame.surfarray.array3d(screen_surf)
-        return 2
+        return pygame.surfarray.array3d(screen_surf)
 
     def time(self):
         return t.perf_counter()

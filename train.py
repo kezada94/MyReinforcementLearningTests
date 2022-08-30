@@ -11,6 +11,7 @@ import mlflow
 
 from utils.mlflow_run_decorator import mlflow_run
 
+MODEL_FILENAME = 'lr_model.pkl'
 
 MAX_EPISODES = 10
 BATCH_SIZE = 32
@@ -31,6 +32,8 @@ CLIP_ERROR = True
 
 EPSILON = 0.0
 
+TORCH_SEED = 0
+
 useGPU = True
 def log_hyperparams():
     mlflow.log_param("MAX_EPISODES", MAX_EPISODES)
@@ -42,13 +45,16 @@ def log_hyperparams():
     mlflow.log_param("FRAME_STACK_SIZE", FRAME_STACK_SIZE)
     mlflow.log_param("SAMPLE_INTERVAL", SAMPLE_INTERVAL)
     mlflow.log_param("EPSILON", EPSILON)
+    mlflow.log_param("TORCH_SEED", TORCH_SEED)
 
 
 @mlflow_run
 def train():
+    torch.manual_seed(TORCH_SEED)
+
     # transformBurrito
     log_hyperparams()  
-    env = FlyingBallGym(headless=False)
+    env = FlyingBallGym(headless=False, maxEnemies=0)
     env = t.TransformStateWrap(env, dstSize=(INPUT_WIDTH, INPUT_HEIGHT))
     env = t.FrameSkipWrap(env, framesToSkip=SAMPLE_INTERVAL)
     env = t.StackFramesWrap(env, framesToStack=FRAME_STACK_SIZE)
@@ -115,9 +121,10 @@ def train():
 
         # Preparar siguiente episodio
         if terminated:
+            model = dqn_model.q_policy
             if diagnostics['rewards'][-1]>max_reward:
                 max_reward = diagnostics['rewards'][-1]
-
+                pickle.dump(model, MODEL_FILENAME)
             episode += 1
             terminated = False
             stacked_states, _ = env.reset()
@@ -135,10 +142,9 @@ def train():
         print (d )
         mlflow.log_metrics(d, i)
     mlflow.log_metric("max_reward", max_reward)
-    # mlflow.log_metric("rewards", diagnostics['rewards'])
-    # mlflow.log_metric("losses", diagnostics['loss'])
-    # mlflow.log_metric("q_sums", diagnostics['q_sum'])
-    # mlflow.log_metric("q_Ns", diagnostics['q_N'])
+    
+    
+    
 
     print(diagnostics)
     env.close()

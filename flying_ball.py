@@ -1,3 +1,4 @@
+from turtle import pos
 from simple_renderer import SimpleRenderer
 import random
 from math import *
@@ -84,7 +85,7 @@ class FlyingBallGame():
         self.spawnRegion = Region(np.array([100,100]), np.array([100,-100]))
         self.despawnRegion = Region(np.array([-102,100]), np.array([-100,-100]))
         self.aliveRegion = Region(np.array([-100,100]), np.array([100,-100]))
-        self.outliers = 
+        self.outliers = []
         self.reset()
 
     def reset(self):
@@ -137,11 +138,10 @@ class FlyingBallGame():
         viewVertices = self.camera.toViewSpace(worldVertices)
         self.r.drawShape(viewVertices, self.player.color)
         
-        # b = Ball(5, np.array([0,0,255]))
-        # b.position = np.array([0,50])
-        # wb = b.toWorldSpace()
-        # vb = self.camera.toViewSpace(wb)
-        # self.r.drawShape(vb, b.color)
+        for outlier in self.outliers:
+            worldVerticesE = outlier.toWorldSpace()
+            viewVerticesE = self.camera.toViewSpace(worldVerticesE)
+            self.r.drawShape(viewVerticesE, outlier.color)
 
         for enemy in self.enemies:
             if enemy.isAlive:
@@ -150,6 +150,12 @@ class FlyingBallGame():
                 self.r.drawShape(viewVerticesE, enemy.color)
 
     def addOutlierBall(self, position, color, radius):
+        o = Ball(radius, color)
+        o.position = position
+        self.outliers.append(o)
+        
+    def clearOutliers(self):
+        self.outliers.clear()
 
 
     def spawnEnemy(self):
@@ -208,7 +214,6 @@ class FlyingBallGame():
         self.acctime = 0
         while not self.gameShouldQuit:
             now = self.r.time()
-            a=self.r.exportFrameAs3DArray()
 
             self.deltaTime = now - self.lastTime
             if (maxFPS != 0 and 1/self.deltaTime > maxFPS):
@@ -267,7 +272,7 @@ if __name__ == "__main__":
 
     from PIL import Image
     game = FlyingBallGame(800, 600, 200, headlessMode=False, playerRadius=5,
-                    enemyRadius=5, enemyProb=0.0, gameSpeed=1,
+                    enemyRadius=5, enemyProb=0.3, gameSpeed=1,
                     enemyVelocity=np.array([-1, 0.0]), seed=0, gravity=[0,0])
     game.mainLoop()
     frame = game.r.exportFrameAs3DArray()

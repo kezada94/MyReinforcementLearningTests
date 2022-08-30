@@ -1,0 +1,13 @@
+gym==0.25.2
+matplotlib==3.5.3
+mlflow==1.28.0
+numpy==1.23.2
+opencv_python==4.6.0.66
+Pillow==9.2.0
+pygame==2.1.2
+PyOpenGL==3.1.6
+scipy==1.9.1
+sympy==1.11
+torch==1.12.1+cu116
+tqdm==4.64.0
+typer==0.6.1

@@ -11,8 +11,8 @@ class FlyingBallGym(gym.Env):
         self.action_space = spaces.Discrete(2);
         self.observation_space = (width, height, 3)
         self.game = fb.FlyingBallGame(width, height, 200, playerRadius=10,
-                    enemyRadius=5, enemyProb=0.004, gameSpeed=1,
-                    enemyVelocity=np.array([-1, 0.0]), headlessMode=headless)
+                    enemyRadius=5, enemyProb=0.4, gameSpeed=1,
+                    enemyVelocity=np.array([-1, 0.0]), headlessMode=headless, maxEnemies=maxEnemies)
         self.lastScore=0
 
     def _actionSpaceToAction(self, action_number: int):

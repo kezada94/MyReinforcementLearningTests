@@ -139,12 +139,12 @@ def train():
     stepVals = zip(*list(diagnostics.values()))
     for i,stepVal in enumerate(stepVals):
         d={key:val for key,val in zip(diagnostics.keys(), stepVal)}
-        print (d )
+        print (d)
         mlflow.log_metrics(d, i)
     mlflow.log_metric("max_reward", max_reward)
     
     
-    
+
 
     print(diagnostics)
     env.close()

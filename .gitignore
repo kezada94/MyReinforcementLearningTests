@@ -3,3 +3,5 @@ __pycache__/*
 *.jpg
 *.png
 !.dvc
+/lr_model.pkl
+/metrics.json

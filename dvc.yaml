@@ -1,3 +1,9 @@
 stages:
     train:
         cmd: python train.py
+        deps:
+            - train.py
+            - params.yaml
+        outs:
+            - lr_model.pkl
+            - metrics.json

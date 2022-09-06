@@ -1,66 +1,32 @@
+from math import inf
 import numpy as np
 from tqdm import tqdm
-import pickle
-from time import sleep
 from rl_agent import DeepQNetwork, ConvolutionalNeuralNetwork, ReplayMemory
 from flying_ball_env import FlyingBallGym
 import env_transformations as t
 import torch
 import typer
-import mlflow
+import json
 
-from utils.mlflow_run_decorator import mlflow_run
+import utils.params_loader as pl
 
-MODEL_FILENAME = 'lr_model.pkl'
+params = pl.load('params.yaml')
+print(params.model_filename)
 
-MAX_EPISODES = 10
-BATCH_SIZE = 32
-MEMORY_REPLAY_SIZE = 3200
-MINIMUM_FRAMES_TO_TRAIN = 32
-
-INPUT_WIDTH = 84
-INPUT_HEIGHT = 84
-FRAME_STACK_SIZE = 4
-SAMPLE_INTERVAL = 4
-
-GAMMA = 0.999
-LEARNING_RATE = 2e-5
-HUBER_LOSS = True
-DUAL_DQN = False
-TARGET_UPDATE_FREQ = 100
-CLIP_ERROR = True
-
-EPSILON = 0.0
-
-TORCH_SEED = 0
 
 useGPU = True
-def log_hyperparams():
-    mlflow.log_param("MAX_EPISODES", MAX_EPISODES)
-    mlflow.log_param("BATCH_SIZE", BATCH_SIZE)
-    mlflow.log_param("MEMORY_REPLAY_SIZE", MEMORY_REPLAY_SIZE)
-    mlflow.log_param("MINIMUM_FRAMES_TO_TRAIN", MINIMUM_FRAMES_TO_TRAIN)
-    mlflow.log_param("INPUT_WIDTH", INPUT_WIDTH)
-    mlflow.log_param("INPUT_HEIGHT", INPUT_HEIGHT)
-    mlflow.log_param("FRAME_STACK_SIZE", FRAME_STACK_SIZE)
-    mlflow.log_param("SAMPLE_INTERVAL", SAMPLE_INTERVAL)
-    mlflow.log_param("EPSILON", EPSILON)
-    mlflow.log_param("TORCH_SEED", TORCH_SEED)
 
-
-@mlflow_run
 def train():
-    torch.manual_seed(TORCH_SEED)
+    torch.manual_seed(params.torch_seed)
 
     # transformBurrito
-    log_hyperparams()  
     env = FlyingBallGym(headless=False, maxEnemies=0)
-    env = t.TransformStateWrap(env, dstSize=(INPUT_WIDTH, INPUT_HEIGHT))
-    env = t.FrameSkipWrap(env, framesToSkip=SAMPLE_INTERVAL)
-    env = t.StackFramesWrap(env, framesToStack=FRAME_STACK_SIZE)
+    env = t.TransformStateWrap(env, dstSize=(params.input_width, params.input_height))
+    env = t.FrameSkipWrap(env, framesToSkip=params.sample_interval)
+    env = t.StackFramesWrap(env, framesToStack=params.frame_stack_size)
 
     #torch.manual_seed(123)
-    n_state = (FRAME_STACK_SIZE, INPUT_WIDTH, INPUT_HEIGHT)
+    n_state = (params.frame_stack_size, params.input_width, params.input_height)
     n_action = 2
     actionsName = ["NOOP", "JUMP"]
     print(actionsName)
@@ -78,21 +44,19 @@ def train():
                             device=device)
 
 
-    memory = ReplayMemory(n_state, memory_length=MEMORY_REPLAY_SIZE)
+    memory = ReplayMemory(n_state, memory_length=params.memory_replay_size)
 
     diagnostics = {'rewards': [0], 'loss': [0],
                     'q_sum': [0], 'q_N': [0]}
-    epsilon = EPSILON
-    episode = 1
+    epsilon = params.epsilon
+    episode = 0
     terminated = False
     stacked_states, info = env.reset()
 
 
-    max_reward = 0
-    pbar = tqdm(total = MAX_EPISODES)
-    pbar.update(1)
-
-    while episode < MAX_EPISODES:
+    max_reward = -inf
+    pbar = tqdm(total = params.max_episodes)
+    while episode < params.max_episodes:
 
         state = stacked_states
         action, q = dqn_model.select_action(torch.from_numpy(state).float().unsqueeze(0).to(device),
@@ -114,8 +78,8 @@ def train():
         stacked_states = stacked_states_next
 
         # Actualizar modelo
-        if memory.pointer > MINIMUM_FRAMES_TO_TRAIN:
-            mini_batch = memory.sample(BATCH_SIZE)
+        if memory.pointer > params.minimum_frames_to_train:
+            mini_batch = memory.sample(params.batch_size)
             if not mini_batch is None:
                 diagnostics['loss'][-1] += dqn_model.update(mini_batch)
 
@@ -124,7 +88,7 @@ def train():
             model = dqn_model.q_policy
             if diagnostics['rewards'][-1]>max_reward:
                 max_reward = diagnostics['rewards'][-1]
-                pickle.dump(model, MODEL_FILENAME)
+                torch.save(model, params.model_filename)
             episode += 1
             terminated = False
             stacked_states, _ = env.reset()
@@ -134,18 +98,8 @@ def train():
             diagnostics['q_N'].append(0)
             pbar.update(1)
 
-
-    #for i in range(len(diagnostics['rewards'])):
-    stepVals = zip(*list(diagnostics.values()))
-    for i,stepVal in enumerate(stepVals):
-        d={key:val for key,val in zip(diagnostics.keys(), stepVal)}
-        print (d)
-        mlflow.log_metrics(d, i)
-    mlflow.log_metric("max_reward", max_reward)
-    
-    
-
-
+    with open(params.metrics_filename, 'w', encoding='utf-8') as f:
+        json.dump(diagnostics, f, ensure_ascii=False, indent=4)
     print(diagnostics)
     env.close()
 

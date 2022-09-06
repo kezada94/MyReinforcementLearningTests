@@ -1,0 +1,24 @@
+## * WARNING * : Changing filenames here requires to change it in dvc.yaml and may break dvc repro
+model_filename: "lr_model.pkl"
+metrics_filename: "metrics.json"
+
+max_episodes: 10
+batch_size: 32
+memory_replay_size: 3200
+minimum_frames_to_train: 32
+
+input_width: 84
+input_height: 84
+frame_stack_size: 4
+sample_interval: 4
+
+gamma: 0.999
+learning_rate: 2e-5
+huber_loss: True
+dual_dqn: False
+target_update_freq: 100
+clip_error: True
+
+epsilon: 0.0
+
+torch_seed: 0

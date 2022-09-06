@@ -2,3 +2,17 @@ schema: '2.0'
 stages:
   train:
     cmd: python train.py
+    deps:
+    - path: params.yaml
+      md5: 79af55a7962ea535f47df3aa51198667
+      size: 459
+    - path: train.py
+      md5: 9ddb9d052bf8f02900506e231737fa06
+      size: 3488
+    outs:
+    - path: lr_model.pkl
+      md5: 7089a48bc401cfd635297779e7239524
+      size: 4409397
+    - path: metrics.json
+      md5: 6e2a96f4c405f9e3879d047b6ef54b32
+      size: 883

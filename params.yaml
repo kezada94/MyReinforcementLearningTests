@@ -13,7 +13,7 @@ frame_stack_size: 4
 sample_interval: 4
 
 gamma: 0.999
-learning_rate: 2e-5
+learning_rate: 2.e-5
 huber_loss: True
 dual_dqn: False
 target_update_freq: 100
@@ -22,3 +22,6 @@ clip_error: True
 epsilon: 0.0
 
 torch_seed: 0
+numpy_seed: 0
+
+use_gpu: True

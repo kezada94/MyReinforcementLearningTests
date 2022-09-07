@@ -4,6 +4,12 @@ stages:
         deps:
             - train.py
             - params.yaml
+			- env_wrapper.py
+			- flying_ball.py
+			- flying_ball_env.py
+			- rl_agent.py
+			- simple_renderer.py
+			- project_instantiator.py
         outs:
             - lr_model.pkl
             - metrics.json

@@ -1,9 +1,9 @@
 from math import inf
 import numpy as np
 from tqdm import tqdm
-from rl_agent import DeepQNetwork, ConvolutionalNeuralNetwork, ReplayMemory
-from flying_ball_env import FlyingBallGym
-import env_transformations as t
+
+import project_instantiator as pj
+
 import torch
 import typer
 import json
@@ -14,37 +14,25 @@ params = pl.load('params.yaml')
 print(params.model_filename)
 
 
-useGPU = True
-
 def train():
     torch.manual_seed(params.torch_seed)
+    np.random.seed(params.numpy_seed)
 
-    # transformBurrito
-    env = FlyingBallGym(headless=False, maxEnemies=0)
-    env = t.TransformStateWrap(env, dstSize=(params.input_width, params.input_height))
-    env = t.FrameSkipWrap(env, framesToSkip=params.sample_interval)
-    env = t.StackFramesWrap(env, framesToStack=params.frame_stack_size)
+    env = pj.getProjectEnv()
 
-    #torch.manual_seed(123)
-    n_state = (params.frame_stack_size, params.input_width, params.input_height)
-    n_action = 2
-    actionsName = ["NOOP", "JUMP"]
-    print(actionsName)
+    #n_state = (params.frame_stack_size, params.input_width, params.input_height)
+    #n_action = 2
+    #actionsName = ["NOOP", "JUMP"]
+    #print(actionsName)
 
     device = 'cpu'
-    if useGPU:
+    if params.use_gpu:
         device = 'cuda'
 
-    dqn_model = DeepQNetwork(q_model=ConvolutionalNeuralNetwork(n_state[0], n_action).to(device),
-                            gamma = 0.999,
-                            double_dqn=False,
-                            target_update_freq=100,
-                            learning_rate=2e-5, huber=True,
-                            clip_error=True,
-                            device=device)
+    dqn_model = pj.getProjectModel()
 
 
-    memory = ReplayMemory(n_state, memory_length=params.memory_replay_size)
+    memory = pj.getProjectReplayMemory()
 
     diagnostics = {'rewards': [0], 'loss': [0],
                     'q_sum': [0], 'q_N': [0]}
@@ -84,6 +72,7 @@ def train():
                 diagnostics['loss'][-1] += dqn_model.update(mini_batch)
 
         # Preparar siguiente episodio
+        
         if terminated:
             model = dqn_model.q_policy
             if diagnostics['rewards'][-1]>max_reward:

@@ -5,7 +5,7 @@ import gym
 from gym import spaces
 
 class FlyingBallGym(gym.Env):
-    def __init__(self, maxEnemies: int = 5, headless: bool=False, target_fps: int = 60):
+    def __init__(self, maxEnemies: int = 5, headless: bool=False, target_fps: int = 60, max_reward: int = 100):
         width = 800
         height = 600
         self.action_space = spaces.Discrete(2);
@@ -14,7 +14,7 @@ class FlyingBallGym(gym.Env):
                     enemyRadius=5, enemyProb=0.4, gameSpeed=1,
                     enemyVelocity=np.array([-1, 0.0]), headlessMode=headless, maxEnemies=maxEnemies)
         self.lastScore=0
-
+        self.max_reward = max_reward
     def _actionSpaceToAction(self, action_number: int):
         #return FlyingBall.Actions(action_number)
         if action_number == 0:
@@ -27,6 +27,10 @@ class FlyingBallGym(gym.Env):
         truncated = False
         ## Step the simulation
         a = self._actionSpaceToAction(action)
+        userAction = self.game.captureAndProcessInput()
+        #if (len(userAction) != 0):
+        #    self.game.step(userAction)
+        #else:
         self.game.step([a])
 
         self.game.render()
@@ -42,7 +46,10 @@ class FlyingBallGym(gym.Env):
             if self.game.score != self.lastScore:
                 self.lastScore = self.game.score
                 reward = 1
+            if self.game.score >= self.max_reward:
+                truncated = True
         info = self._getInfo()
+        #self.game.captureAndProcessInput()
         return state, reward, terminated, truncated, info
 
     def _getInfo(self):
@@ -71,7 +78,7 @@ class FlyingBallGym(gym.Env):
 
 if __name__ == "__main__":
     game = FlyingBallGym()
-    import env_transformations as t
+    import utils.env_transformations as t
     #                                         WIDTH HEIGHT
     game = t.TransformStateWrap(game, dstSize=(12, 84))
     game = t.FrameSkipWrap(game, framesToSkip=8)

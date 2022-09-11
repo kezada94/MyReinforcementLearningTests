@@ -2,7 +2,7 @@
 model_filename: "lr_model.pkl"
 metrics_filename: "metrics.json"
 
-max_episodes: 10
+max_episodes: 30
 batch_size: 32
 memory_replay_size: 3200
 minimum_frames_to_train: 32

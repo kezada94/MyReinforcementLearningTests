@@ -49,6 +49,7 @@ class SimpleRenderer():
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
     def drawShape(self, vertices, color):
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
         
         glColor3f(color[0], color[1], color[2]);
         glBegin(GL_POLYGON)
@@ -56,14 +57,13 @@ class SimpleRenderer():
             glVertex2f(*vertex)
         glEnd();
 
-        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
-        self.clear()
-        glColor3f(color[0], color[1], color[2]);
-        glBegin(GL_POLYGON)
-        for vertex in vertices:
-            glVertex2f(*vertex)
-        glEnd();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        # glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
+        # self.clear()
+        # glColor3f(color[0], color[1], color[2]);
+        # glBegin(GL_POLYGON)
+        # for vertex in vertices:
+        #     glVertex2f(*vertex)
+        # glEnd();
 
         #glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_WRITE)
         #glBindBuffer (GL_PIXEL_PACK_BUFFER, 0)
@@ -97,10 +97,10 @@ class SimpleRenderer():
         return input
 
     def exportFrameAs3DArray(self):
-        glBindFramebuffer (GL_FRAMEBUFFER, self.fbo)
+        #glBindFramebuffer (GL_FRAMEBUFFER, self.fbo)
 
         buffer = glReadPixels(0, 0, self.viewportWidth, self.viewportHeight, GL_RGB, GL_UNSIGNED_BYTE)
-        glBindFramebuffer (GL_FRAMEBUFFER, 0)
+        #glBindFramebuffer (GL_FRAMEBUFFER, 0)
 
         screen_surf = pygame.image.fromstring(buffer, (self.viewportWidth, self.viewportHeight), "RGB")
         #screen_surf = pygame.image.frombuffer(buffer, size, "RGB")

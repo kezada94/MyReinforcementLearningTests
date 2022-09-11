@@ -7,7 +7,7 @@ print(params.model_filename)
 
 
 def getEnvBurrito():
-    env = FlyingBallGym(headless=False, maxEnemies=0)
+    env = FlyingBallGym(headless=False, maxEnemies=0, max_reward=30)
     env = t.TransformStateWrap(env, dstSize=(params.input_width, params.input_height))
     env = t.FrameSkipWrap(env, framesToSkip=params.sample_interval)
     env = t.StackFramesWrap(env, framesToStack=params.frame_stack_size)

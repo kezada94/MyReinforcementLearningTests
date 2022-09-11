@@ -226,12 +226,17 @@ class FlyingBallGame():
                 print(1/self.deltaTime)
                 self.acctime = 0
             self.lastTime = now
-            keysPressed = self.r.captureInput()
-            actions = self.processInput(keysPressed)
+            actions = self.captureAndProcessInput()
             self.step(actions)
             self.render()
             if self.gameShouldReset:
                 self.reset()
+
+    def captureAndProcessInput(self):
+        keysPressed = self.r.captureInput()
+        #print(keysPressed)
+        actions = self.processInput(keysPressed)
+        return actions
 
     def close(self):
         self.r.close()
@@ -273,8 +278,8 @@ if __name__ == "__main__":
     from PIL import Image
     game = FlyingBallGame(800, 600, 200, headlessMode=False, playerRadius=5,
                     enemyRadius=5, enemyProb=0.3, gameSpeed=1,
-                    enemyVelocity=np.array([-1, 0.0]), seed=0, gravity=[0,0])
-    game.mainLoop()
+                    enemyVelocity=np.array([-0.1, 0.0]), seed=0, gravity=[0,-0.1], maxEnemies=10)
+    game.mainLoop(maxFPS=60)
     frame = game.r.exportFrameAs3DArray()
     game.close()
     im = Image.fromarray(np.transpose(frame[::2, ::2], (1, 0, 2)), 'RGB')

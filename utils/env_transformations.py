@@ -16,8 +16,9 @@ class FrameSkipWrap(gym.Wrapper):
             if iterminated:
                 break
 
-            _, rr, iterminated, _, _ = self.env.step(action) ## Note that the action is repeated, is this desirable?
+            _, rr, iterminated, itruncated, _ = self.env.step(action) ## Note that the action is repeated, is this desirable?
             ir += rr
+            truncated |= itruncated
 
         if iterminated:
             ir=-1
@@ -44,7 +45,7 @@ class StackFramesWrap(gym.Wrapper):
         out, info = self.env.reset()
         #print(out.shape)
         for i in range(self.framesToStack):
-            self.frames[i] = out
+            self.frames[i] = out.copy()
         return self._getObs(), info
     
     def _addFrame(self, frame):
@@ -71,8 +72,8 @@ class TransformStateWrap(gym.Wrapper):
         self.dstSize = (dstSize[1], dstSize[0])    
 
     def transform(self, frame):
-        assert len(frame.shape) == 3, "Not working with an RGB image"
-        cv2.imwrite("og.png", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+        assert len(frame.shape) >= 3, "Not working with an RGB image"
+        #cv2.imwrite("og.png", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         #cv2.imwrite("og.png", frame)
         #print("b4", frame.max())
         newFrame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)

@@ -12,13 +12,8 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 
 sys.path.append('.')
 
-from flying_ball_env import FlyingBallGym
-import env_transformations as t
-from train import FRAME_STACK_SIZE, INPUT_HEIGHT,  INPUT_WIDTH, SAMPLE_INTERVAL
-import rl_agent
-
 def generateConvLayersFM(model, frame):
-    assert frame.shape == (FRAME_STACK_SIZE, INPUT_WIDTH, INPUT_HEIGHT)
+#    assert frame.shape == (FRAME_STACK_SIZE, INPUT_WIDTH, INPUT_HEIGHT)
     outputs = []
     for layer in model.children():
         if(type(layer)) == nn.Conv2d:
@@ -65,18 +60,12 @@ def plotFrameStack(frameStack):
     
 
 if __name__=="__main__":
-    n_state = (FRAME_STACK_SIZE, INPUT_WIDTH, INPUT_HEIGHT)
-    n_action = 2
-    env = FlyingBallGym(headless=False)
-    env = t.TransformStateWrap(env, dstSize=(INPUT_WIDTH, INPUT_HEIGHT))
-    env = t.FrameSkipWrap(env, framesToSkip=SAMPLE_INTERVAL)
-    env = t.StackFramesWrap(env, framesToStack=FRAME_STACK_SIZE)
-    dqn_model = rl_agent.DeepQNetwork(q_model=rl_agent.ConvolutionalNeuralNetwork(n_state[0], n_action),
-                            gamma = 0.999,
-                            double_dqn=False,
-                            target_update_freq=100,
-                            learning_rate=2e-5, huber=True,
-                            clip_error=True)
+    import project_instantiator as pj
+
+
+    
+    env = pj.getProjectEnv()
+    dqn_model = pj.getProjectModel()
     frame, _ = env.reset()
     plotFrameStack(frame)
     print(frame.shape)

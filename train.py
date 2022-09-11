@@ -55,7 +55,7 @@ def train():
             diagnostics['q_N'][-1] += 1
 
         # Aplicar la acción
-        stacked_states_next, r, terminated, _, info = env.step(action) #GET NECT
+        stacked_states_next, r, terminated, truncated, info = env.step(action) #GET NECT
         
         diagnostics['rewards'][-1] += r
 
@@ -73,7 +73,7 @@ def train():
 
         # Preparar siguiente episodio
         
-        if terminated:
+        if terminated or truncated:
             model = dqn_model.q_policy
             if diagnostics['rewards'][-1]>max_reward:
                 max_reward = diagnostics['rewards'][-1]
